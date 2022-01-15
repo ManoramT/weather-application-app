@@ -10,6 +10,7 @@ const App = () => {
   const [selectedStateName, setSelectedStateName] = useState("");
   const [cityNames, setCityNames] = useState([]);
   const [selectedCityName, setSelectedCityName] = useState("");
+  const [weatherData, setWeatherData] = useState({temp: "", condition: "", icon: ""});
 
   useEffect(() => {
     getCountryNames();
@@ -61,6 +62,23 @@ const App = () => {
       })
   }
 
+  const getWeatherData = () => {
+    if(!selectedCityName){
+      return;
+    }
+    const apiKey = "e81d4cdf3f42ccbc745fe27695843e3c";
+    axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${selectedCityName}&appid=${apiKey}`)
+      .then((response) => {
+        setWeatherData(prevState => ({
+          ...prevState,
+          temp: response.data.main.temp,
+          condition: response.data.weather[0].main,
+          icon: response.data.weather[0].icon
+        }))
+        console.log(response);
+      })
+  }
+
   return (
     <div className="App">
       <input list="country-list" id="country-choice" name="country-choice" onInput={(e) => setSelectedCountryName(e.target.value)}/>
@@ -85,7 +103,20 @@ const App = () => {
           return <option key={index} value={cityObj.city_name} />
         })}
       </datalist>
-      <button type="button" onClick={()=> console.log(selectedCityName)}>OK</button>
+      <button type="button" onClick={getWeatherData}>OK</button>
+      <hr />
+      {weatherData.temp && 
+      weatherData.condition && 
+      weatherData.icon && 
+      selectedCityName && 
+      selectedStateName && 
+      selectedCountryName &&
+        <div>
+          <p>The temperature in {selectedCityName}, {selectedStateName}, {selectedCountryName} is {parseFloat(weatherData.temp - 273).toFixed(2)}°C</p>
+          <p>The weather condition is {weatherData.condition}</p>
+          <img src={`http://openweathermap.org/img/wn/${weatherData.icon}@2x.png`} alt="weather-icon" />
+        </div>
+      }
     </div>
   );
 }
