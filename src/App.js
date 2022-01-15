@@ -11,9 +11,13 @@ const App = () => {
   const [cityNames, setCityNames] = useState([]);
   const [selectedCityName, setSelectedCityName] = useState("");
   const [weatherData, setWeatherData] = useState({temp: "", condition: "", icon: ""});
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     getCountryNames();
+    return () => {
+      localStorage.removeItem("authToken");
+    }
   }, []);
 
   const getCountryNames = () => {
@@ -28,7 +32,6 @@ const App = () => {
         "Accept": "application/json",
         "Authorization": `Bearer ${authToken}`
       }}).then((response) => {
-        console.log(response);
         setCountryNames(response.data);
       })
     })
@@ -43,7 +46,6 @@ const App = () => {
         "Accept": "application/json",
         "Authorization": `Bearer ${authToken}`
       }}).then((response) => {
-        console.log(response);
         setStateNames(response.data);
       })
   }
@@ -57,7 +59,6 @@ const App = () => {
         "Accept": "application/json",
         "Authorization": `Bearer ${authToken}`
       }}).then((response) => {
-        console.log(response);
         setCityNames(response.data);
       })
   }
@@ -66,6 +67,7 @@ const App = () => {
     if(!selectedCityName){
       return;
     }
+    setError(false);
     const apiKey = "e81d4cdf3f42ccbc745fe27695843e3c";
     axios.get(`http://api.openweathermap.org/data/2.5/weather?q=${selectedCityName}&appid=${apiKey}`)
       .then((response) => {
@@ -75,7 +77,9 @@ const App = () => {
           condition: response.data.weather[0].main,
           icon: response.data.weather[0].icon
         }))
-        console.log(response);
+      }).catch((error) => {
+        console.log("Error in weather API - possibly city not found");
+        setError(true);
       })
   }
 
@@ -117,6 +121,7 @@ const App = () => {
           <img src={`http://openweathermap.org/img/wn/${weatherData.icon}@2x.png`} alt="weather-icon" />
         </div>
       }
+      {error && <p>City not found error in API. Please try for some other city.</p>}
     </div>
   );
 }
